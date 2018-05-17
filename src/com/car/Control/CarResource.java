@@ -1,12 +1,11 @@
 package com.car.Control;
 
-import java.util.Date;
-import java.util.List;
 
-import javax.persistence.Query;
+import javax.ejb.EJB;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -15,14 +14,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.hibernate.cfg.Configuration;
+import org.apache.log4j.Logger;
 
 import com.car.Boundary.CarService;
 import com.car.Entity.Car;
-import com.car.Utils.HibernateUtil;
+import com.car.Utils.AuthUtil;
 
 
 @Path("/cars")
@@ -30,41 +26,81 @@ import com.car.Utils.HibernateUtil;
 @Produces(MediaType.APPLICATION_JSON)
 //@Produces(value = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public class CarResource {
-	public Response response;
-	public CarService carservice = new CarService();
+	
+	private Response response;
+	Logger logger = Logger.getLogger(CarResource.class);
+	AuthUtil auth = new AuthUtil();
+	
+	@EJB
+	public CarService carservice;
 	
 	@GET
 	@Path("/")
-	public Response getAllCars() {
-		response = carservice.getAllCars();
+	public Response getAllCars(@HeaderParam("authorization") final String authorization) {
+		if(auth.verifyToken(authorization)) {
+			logger.info("Calling getAllCars method");
+			response = carservice.getAllCars();
+		}
+		else {
+			logger.warn("Can't call getAllCars method, invalid authentication");
+			response = Response.status(401).build();
+		}
 		return response;
 	}
 	
 	@GET
 	@Path("/{id}")
-	public Response getCar(@PathParam("id") int id) {
-		response = carservice.getCar(id);
+	public Response getCar(@HeaderParam("authorization") final String authorization, @PathParam("id") int id) {
+		if(auth.verifyToken(authorization)) {
+			logger.info("Calling getCar method");
+			response = carservice.getCar(id);
+		}
+		else {
+			logger.warn("Can't call getCar method, invalid authentication");
+			response = Response.status(401).build();
+		}
 		return response;
 	}
 	
 	@POST
 	@Path("/")
-	public Response createCar(Car car) {
-		response = carservice.createCar(car);
+	public Response createCar(@HeaderParam("authorization") final String authorization, Car car) {
+		if(auth.verifyToken(authorization)) {
+			logger.info("Calling createCar method");
+			response = carservice.createCar(car);
+		}
+		else {
+			logger.warn("Can't call createCar method, invalid authentication");
+			response = Response.status(401).build();
+		}
 		return response;
 	}
 	
 	@PUT
-	@Path("/")
-	public Response updateCar(Car car) {
-		response = carservice.updateCar(car);
+	@Path("/{id}")
+	public Response updateCar(@HeaderParam("authorization") final String authorization, Car car, @PathParam("id") int id) {
+		if(auth.verifyToken(authorization)) {
+			logger.info("Calling updateCar method");
+			response = carservice.updateCar(car, id);
+		}
+		else {
+			logger.warn("Can't call updateCar method, invalid authentication");
+			response = Response.status(401).build();
+		}
 		return response;
 	}
-	//comment
+
 	@DELETE
 	@Path("/{id}")
-	public Response deleteCar(@PathParam("id") int id) {
-		response = carservice.deleteCar(id);
+	public Response deleteCar(@HeaderParam("authorization") final String authorization, @PathParam("id") int id) {
+		if(auth.verifyToken(authorization)) {
+			logger.info("Calling deleteCar method");
+			response = carservice.deleteCar(id);
+		}
+		else {
+			logger.warn("Can't call deleteCar method, invalid authentication");
+			response = Response.status(401).build();
+		}
 		return response;
 	}
 }
