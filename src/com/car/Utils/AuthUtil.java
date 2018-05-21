@@ -15,7 +15,7 @@ public class AuthUtil {
 	public static String clientId = "zZBE6zUI2rV7iBhzrHyI5NaiaKptFIVf";
 	public static AuthAPI auth = new AuthAPI(domain,clientId,clientKey);
 	
-	public boolean verifyToken(String headerToken) {
+	public static boolean verifyToken(String headerToken) {
 
 		String[] dividedHeader = headerToken.split(" ");
 		String token = dividedHeader[1];

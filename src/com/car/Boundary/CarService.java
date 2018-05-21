@@ -2,12 +2,21 @@ package com.car.Boundary;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+
 import javax.ejb.Stateless;
 import javax.persistence.Query;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import javax.ws.rs.core.Response;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+
+import com.auth0.json.mgmt.users.User;
 import com.car.Entity.Car;
 import com.car.Utils.HibernateUtil;
 
@@ -18,6 +27,9 @@ public class CarService {
 	public SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
 	public Session session = sessionFactory.openSession();
 	Logger logger = Logger.getLogger(CarService.class);
+	ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+	Validator validator = factory.getValidator();
+	
 	
 	public Response getAllCars() {
 		
@@ -73,6 +85,14 @@ public class CarService {
 			session.getTransaction().commit();
 			response = Response.status(200).entity(car).build();
 			
+		} catch (ConstraintViolationException e) {
+			Set<ConstraintViolation<Car>> violations = validator.validate(car);
+			for (ConstraintViolation<Car> violation : violations) {
+			    //logger.error(violation.getMessage());
+				logger.error(e.getMessage());
+			    response = Response.status(400).entity(violation.getMessage()).build();
+			}
+			
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			response = Response.status(500).build();
@@ -102,10 +122,19 @@ public class CarService {
 				logger.info("Updating the car: "+carToUpdate.toString());
 			}
 			
+		} catch (ConstraintViolationException e) {
+			Set<ConstraintViolation<Car>> violations = validator.validate(car);
+			for (ConstraintViolation<Car> violation : violations) {
+			    //logger.error(violation.getMessage());
+				logger.error(e.getMessage());
+			    response = Response.status(400).entity(violation.getMessage()).build();
+			}
+			
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			response = Response.status(500).build();
 		}
+		
 		return response;
 	}
 	

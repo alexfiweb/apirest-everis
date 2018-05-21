@@ -7,6 +7,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 
 
 @Entity
@@ -20,6 +22,8 @@ public class Car {
 
 	@ManyToOne
 	private Brand brand;
+	@Size(min = 4, max = 20, message = "The field 'country' must be between 4 and 20 characters")
+	@NotEmpty(message= "The field 'country' can not be empty")
 	private String country;
 	
 	public int getId() {

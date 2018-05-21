@@ -29,7 +29,6 @@ public class CarResource {
 	
 	private Response response;
 	Logger logger = Logger.getLogger(CarResource.class);
-	AuthUtil auth = new AuthUtil();
 	
 	@EJB
 	public CarService carservice;
@@ -37,7 +36,7 @@ public class CarResource {
 	@GET
 	@Path("/")
 	public Response getAllCars(@HeaderParam("authorization") final String authorization) {
-		if(auth.verifyToken(authorization)) {
+		if(AuthUtil.verifyToken(authorization)) {
 			logger.info("Calling getAllCars method");
 			response = carservice.getAllCars();
 		}
@@ -51,7 +50,7 @@ public class CarResource {
 	@GET
 	@Path("/{id}")
 	public Response getCar(@HeaderParam("authorization") final String authorization, @PathParam("id") int id) {
-		if(auth.verifyToken(authorization)) {
+		if(AuthUtil.verifyToken(authorization)) {
 			logger.info("Calling getCar method");
 			response = carservice.getCar(id);
 		}
@@ -65,7 +64,7 @@ public class CarResource {
 	@POST
 	@Path("/")
 	public Response createCar(@HeaderParam("authorization") final String authorization, Car car) {
-		if(auth.verifyToken(authorization)) {
+		if(AuthUtil.verifyToken(authorization)) {
 			logger.info("Calling createCar method");
 			response = carservice.createCar(car);
 		}
@@ -79,7 +78,7 @@ public class CarResource {
 	@PUT
 	@Path("/{id}")
 	public Response updateCar(@HeaderParam("authorization") final String authorization, Car car, @PathParam("id") int id) {
-		if(auth.verifyToken(authorization)) {
+		if(AuthUtil.verifyToken(authorization)) {
 			logger.info("Calling updateCar method");
 			response = carservice.updateCar(car, id);
 		}
@@ -93,7 +92,7 @@ public class CarResource {
 	@DELETE
 	@Path("/{id}")
 	public Response deleteCar(@HeaderParam("authorization") final String authorization, @PathParam("id") int id) {
-		if(auth.verifyToken(authorization)) {
+		if(AuthUtil.verifyToken(authorization)) {
 			logger.info("Calling deleteCar method");
 			response = carservice.deleteCar(id);
 		}
