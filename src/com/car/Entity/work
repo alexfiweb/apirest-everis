@@ -1,3 +1,7 @@
-Document API with Swagger
+- Document API with Swagger
 
-Login implementation (JWT), user roles with permission (deletion, modification and creation of vehicles restricted, viewer and admin roles, both frontEnd and backend validations). Auth con auth0
+- user roles
+
+- Interceptor – middleware
+
+- JMS

@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import com.car.Entity.Car;
+import com.car.Entity.Model;
 import com.car.Utils.HibernateUtil;
 
 public class test {
@@ -27,9 +28,13 @@ public class test {
 		SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
 		Session session = sessionFactory.openSession();
 		session.beginTransaction();
+		Car car = session.get(Car.class, 7);
+		session.getTransaction().commit();
+		
 		//Car car = new Car(brand, country);
 		//session.save(car);		
 		
+		/*
 		Query query = (Query) session.createQuery("from Car");
 		List<Car> cars = (List<Car>) query.getResultList();
 		session.getTransaction().commit();
@@ -41,6 +46,7 @@ public class test {
 			logger.warn("token incorrect");
 			System.out.println("token invalido");
 		}
+		*/
 	}
 
 }

@@ -1,6 +1,8 @@
 package com.car.Control;
 
 
+import java.util.Set;
+
 import javax.ejb.EJB;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -11,9 +13,14 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import org.apache.log4j.Logger;
 
 import com.car.Boundary.CarService;
@@ -29,6 +36,9 @@ public class CarResource {
 	
 	private Response response;
 	Logger logger = Logger.getLogger(CarResource.class);
+	ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+	Validator validator = factory.getValidator();
+	
 	
 	@EJB
 	public CarService carservice;
@@ -61,12 +71,39 @@ public class CarResource {
 		return response;
 	}
 	
+	@GET
+	@Path("/test")
+	public Response getCarsByBrand(@HeaderParam("authorization") final String authorization, @QueryParam("brand") String brand, @QueryParam("model") String model) {
+		if(AuthUtil.verifyToken(authorization)) {
+			logger.info("Calling getCarsByBrand method");
+			response = carservice.getCarsByBrand(brand, model);
+		}
+		else {
+			logger.warn("Can't call getCarsByBrand method, invalid authentication");
+			response = Response.status(401).build();
+		}
+		return response;
+	}
+	
 	@POST
 	@Path("/")
 	public Response createCar(@HeaderParam("authorization") final String authorization, Car car) {
 		if(AuthUtil.verifyToken(authorization)) {
 			logger.info("Calling createCar method");
-			response = carservice.createCar(car);
+			try {
+				response = Response.status(201).entity(carservice.createCar(car)).build();
+			} catch (ConstraintViolationException e) {
+				Set<ConstraintViolation<Car>> violations = validator.validate(car);
+				for (ConstraintViolation<Car> violation : violations) {
+					logger.error(e.getMessage());
+				    response = Response.status(400).entity(violation.getMessage()).build();
+				}
+				logger.error(e.getMessage());
+				
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				response = Response.status(500).build();
+			}
 		}
 		else {
 			logger.warn("Can't call createCar method, invalid authentication");
@@ -98,6 +135,20 @@ public class CarResource {
 		}
 		else {
 			logger.warn("Can't call deleteCar method, invalid authentication");
+			response = Response.status(401).build();
+		}
+		return response;
+	}
+	
+	@GET
+	@Path("brands")
+	public Response getAllBrands(@HeaderParam("authorization") final String authorization) {
+		if(AuthUtil.verifyToken(authorization)) {
+			logger.info("Calling getAllBrands method");
+			response = carservice.getAllBrands();
+		}
+		else {
+			logger.warn("Can't call getAllBrands method, invalid authentication");
 			response = Response.status(401).build();
 		}
 		return response;

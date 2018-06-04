@@ -17,22 +17,23 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import com.auth0.json.mgmt.users.User;
+import com.car.Entity.Brand;
 import com.car.Entity.Car;
+import com.car.Entity.Model;
 import com.car.Utils.HibernateUtil;
 
 @Stateless
 public class CarService {
-	
+
 	public Response response;
 	public SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
 	public Session session = sessionFactory.openSession();
 	Logger logger = Logger.getLogger(CarService.class);
 	ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
 	Validator validator = factory.getValidator();
-	
-	
+
 	public Response getAllCars() {
-		
+
 		try {
 			logger.info("getting all cars");
 			session.beginTransaction();
@@ -41,125 +42,176 @@ public class CarService {
 			List<Car> cars = resultList;
 			session.getTransaction().commit();
 			response = Response.status(200).entity(cars).build();
-			
+
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			response = Response.status(500).build();
 		}
+
+		return response;
+	}
+
+	public Response getCarsByBrand(String brand, String model) {
 		
+		try {
+			logger.info("getting all cars with the brand: ");
+			session.beginTransaction();
+			if(brand=="all") {
+				Query query = session.createQuery("select c from Car as c WHERE c.model LIKE :model")
+						.setParameter("model", "%"+model+"%");
+				List<Car> resultList = (List<Car>) query.getResultList();
+				response = Response.status(200).entity(resultList).build();
+			}
+			else {
+				Query query = session.createQuery("select c from Car as c JOIN Brand as b ON b.name = :brand AND c.model LIKE :model AND c.brand.id = b.id")
+						.setParameter("brand", brand)
+						.setParameter("model", "%"+model+"%");
+				List<Car> resultList = (List<Car>) query.getResultList();
+				response = Response.status(200).entity(resultList).build();
+			}		
+			session.getTransaction().commit();
+
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			response = Response.status(500).build();
+		}
+
 		return response;
 	}
 	
 	public Response getCar(int id) {
-		
+
 		try {
 			session.beginTransaction();
 			Car car = session.get(Car.class, id);
-			
-			if (car==null) {
-				logger.error("Can't get the car, there is no car with id "+id);
+
+			if (car == null) {
+				logger.error("Can't get the car, there is no car with id " + id);
 				session.getTransaction().commit();
 				response = Response.status(404).build();
-			}
-			else {
-				logger.info("Getting the car: "+car.toString());
+			} else {
+				logger.info("Getting the car: " + car.toString());
 				session.getTransaction().commit();
 				response = Response.status(200).entity(car).build();
 			}
-			
+
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			response = Response.status(500).build();
 		}
-		
+
 		return response;
-		
+
 	}
-	
-	public Response createCar(Car car) {
-		
-		try {
-			logger.info("Creating the car: "+car.toString());
-			session.beginTransaction();
-			session.save(car);
-			session.getTransaction().commit();
-			response = Response.status(200).entity(car).build();
-			
-		} catch (ConstraintViolationException e) {
-			Set<ConstraintViolation<Car>> violations = validator.validate(car);
-			for (ConstraintViolation<Car> violation : violations) {
-			    //logger.error(violation.getMessage());
-				logger.error(e.getMessage());
-			    response = Response.status(400).entity(violation.getMessage()).build();
-			}
-			
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-			response = Response.status(500).build();
-		}
-		
-		return response;
+
+	public Car createCar(Car car) throws ConstraintViolationException, Exception {
+
+		logger.info("Creating the car: " + car.toString());
+		session.beginTransaction();
+		session.save(car);
+		session.getTransaction().commit();
+		return car;
 	}
-	
+
+	/*
+	 * public Response createCar(Car car) {
+	 * 
+	 * try { logger.info("Creating the car: "+car.toString());
+	 * session.beginTransaction(); session.save(car);
+	 * session.getTransaction().commit(); response =
+	 * Response.status(200).entity(car).build();
+	 * 
+	 * } catch (ConstraintViolationException e) { Set<ConstraintViolation<Car>>
+	 * violations = validator.validate(car); for (ConstraintViolation<Car> violation
+	 * : violations) { //logger.error(violation.getMessage());
+	 * logger.error(e.getMessage()); response =
+	 * Response.status(400).entity(violation.getMessage()).build(); }
+	 * 
+	 * } catch (Exception e) { logger.error(e.getMessage()); response =
+	 * Response.status(500).build(); }
+	 * 
+	 * return response; }
+	 */
+
 	public Response updateCar(Car car, int id) {
-		
+
 		try {
 			session.beginTransaction();
 			Car carToUpdate = session.get(Car.class, id);
-			if(carToUpdate==null) {
-				logger.error("Can't update the car, there is no car with id "+id);
+			if (carToUpdate == null) {
+				logger.error("Can't update the car, there is no car with id " + id);
 				session.getTransaction().commit();
 				response = Response.status(404).build();
-			}
-			else {
-				carToUpdate.setBrand(car.getBrand());
+			} else {
+				int brandId = car.getModel().getId();
+				Model brand = session.get(Model.class, brandId);
+				//session.getTransaction().commit();
+				carToUpdate.setModel(brand);
 				carToUpdate.setCountry(car.getCountry());
 				carToUpdate.setRegistration(car.getRegistration());
 				carToUpdate.setLastUpdate(new Date());
 				session.update(carToUpdate);
 				session.getTransaction().commit();
-				response = Response.status(200).entity(car).build();
-				logger.info("Updating the car: "+carToUpdate.toString());
+				response = Response.status(200).entity(carToUpdate).build();
+				logger.info("Updating the car: " + carToUpdate.toString());
 			}
-			
+
 		} catch (ConstraintViolationException e) {
 			Set<ConstraintViolation<Car>> violations = validator.validate(car);
 			for (ConstraintViolation<Car> violation : violations) {
-			    //logger.error(violation.getMessage());
+				// logger.error(violation.getMessage());
 				logger.error(e.getMessage());
-			    response = Response.status(400).entity(violation.getMessage()).build();
+				response = Response.status(400).entity(violation.getMessage()).build();
 			}
-			
+
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			response = Response.status(500).build();
 		}
-		
+
 		return response;
 	}
-	
+
 	public Response deleteCar(int id) {
-		
+
 		try {
 			session.beginTransaction();
 			Car car = session.get(Car.class, id);
-			if(car==null) {
-				logger.error("Can't delete the car, there is no car with id "+id);
+			if (car == null) {
+				logger.error("Can't delete the car, there is no car with id " + id);
 				session.getTransaction().commit();
 				response = Response.status(404).build();
-			}
-			else {
-				logger.info("Deleting the car: "+car.toString());
+			} else {
+				logger.info("Deleting the car: " + car.toString());
 				session.delete(car);
 				session.getTransaction().commit();
 				response = Response.status(200).entity(car).build();
 			}
-			
-		} catch (Exception e){
+
+		} catch (Exception e) {
 			logger.error(e.getMessage());
 			response = Response.status(500).build();
 		}
-		
+
+		return response;
+	}
+
+	public Response getAllBrands() {
+
+		try {
+			logger.info("getting all brands");
+			session.beginTransaction();
+			Query query = session.createQuery("from Brand");
+			List<Brand> resultList = (List<Brand>) query.getResultList();
+			List<Brand> brands = resultList;
+			session.getTransaction().commit();
+			response = Response.status(200).entity(brands).build();
+
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			response = Response.status(500).build();
+		}
+
 		return response;
 	}
 }

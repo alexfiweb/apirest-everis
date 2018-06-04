@@ -16,21 +16,27 @@ public class AuthUtil {
 	public static AuthAPI auth = new AuthAPI(domain,clientId,clientKey);
 	
 	public static boolean verifyToken(String headerToken) {
-
-		String[] dividedHeader = headerToken.split(" ");
-		String token = dividedHeader[1];
 		boolean authorized = false;
-		try {
-			Algorithm algorithm = Algorithm.HMAC256(AuthUtil.clientKey);
-			JWTVerifier verifier = JWT.require(algorithm).withIssuer("https://alexfiweb.eu.auth0.com/").build();
-			//In case it doesn´t verify it throws an exception
-			DecodedJWT jwt = verifier.verify(token);
-			authorized = true;
-		} catch (UnsupportedEncodingException exception){
-		    //UTF-8 encoding not supported
-		} catch (JWTVerificationException exception){
-		    //Invalid signature/claims
+
+		if (headerToken==null) {
+			return authorized;
 		}
-		return authorized;
+		else {
+			String[] dividedHeader = headerToken.split(" ");
+			String token = dividedHeader[1];
+			try {
+				Algorithm algorithm = Algorithm.HMAC256(AuthUtil.clientKey);
+				JWTVerifier verifier = JWT.require(algorithm).withIssuer("https://alexfiweb.eu.auth0.com/").build();
+				//In case it doesn´t verify it throws an exception
+				verifier.verify(token);
+				authorized = true;
+			} catch (UnsupportedEncodingException exception){
+			    //UTF-8 encoding not supported
+			} catch (JWTVerificationException exception){
+			    //Invalid signature/claims
+			}
+			return authorized;
+		}
+		
 	}
 }

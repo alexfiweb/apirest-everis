@@ -21,7 +21,7 @@ public class Car {
 	private Date registration;
 
 	@ManyToOne
-	private Brand brand;
+	private Model model;
 	@Size(min = 4, max = 20, message = "The field 'country' must be between 4 and 20 characters")
 	@NotEmpty(message= "The field 'country' can not be empty")
 	private String country;
@@ -61,14 +61,13 @@ public class Car {
 	public void setId(int id) {
 		this.id = id;
 	}
-	
-	
-	public Brand getBrand() {
-		return brand;
+
+	public Model getModel() {
+		return model;
 	}
 
-	public void setBrand(Brand brand) {
-		this.brand = brand;
+	public void setModel(Model model) {
+		this.model = model;
 	}
 
 	public String getCountry() {
@@ -81,7 +80,7 @@ public class Car {
 
 	@Override
 	public String toString() {
-		return "id=" + id + ", created=" + created + ", lastUpdate=" + lastUpdate + ", registration=" + registration + ", brand=" + brand + ", country=" + country;
+		return "id=" + id + ", created=" + created + ", lastUpdate=" + lastUpdate + ", registration=" + registration + ", model=" + model + ", country=" + country;
 	}
 	
 	
