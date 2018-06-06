@@ -9,7 +9,8 @@ import org.hibernate.service.ServiceRegistry;
 import com.car.Entity.Brand;
 import com.car.Entity.Car;
 import com.car.Entity.Country;
- 
+import com.car.Entity.Model;
+
 public class HibernateUtil {
     private static SessionFactory sessionFactory;
      
@@ -20,6 +21,7 @@ public class HibernateUtil {
             configuration.addAnnotatedClass(Brand.class);
             configuration.addAnnotatedClass(Car.class);
             configuration.addAnnotatedClass(Country.class);
+            configuration.addAnnotatedClass(Model.class);
             ServiceRegistry serviceRegistry
                 = new StandardServiceRegistryBuilder()
                     .applySettings(configuration.getProperties()).build();
